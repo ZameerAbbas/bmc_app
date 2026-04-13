@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card, ProductCard, SectionHeader } from "../../components/ui";
@@ -22,13 +22,10 @@ export default function HomeScreen() {
   const { totalItems } = useCart();
   const [search, setSearch] = useState("");
   const { products: featured, loading: fl } = useProducts({
-    search: search, // optional search
-    // limitCount: 8, // limit
-    // featuredOnly: true, // must be supported in hook
+    featuredOnly: true,
+    limitCount: 8,
   });
-
-  // ✅ Categories (Realtime DB)
-  const { categories, loading: cl } = useCategories();
+  const { categories } = useCategories();
 
   const greeting = profile?.displayName
     ? `Hi, ${profile.displayName.split(" ")[0]} 👋`
@@ -38,8 +35,6 @@ export default function HomeScreen() {
     if (search.trim())
       router.push({ pathname: "/(tabs)/products", params: { q: search } });
   };
-
-  console.log("featured", featured);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -190,7 +185,7 @@ export default function HomeScreen() {
                   { backgroundColor: (cat.color || Colors.primary) + "18" },
                 ]}
               >
-                <Text style={{ fontSize: 18 }}>{"💊"}</Text>
+                <Text style={{ fontSize: 18 }}>{cat.icon || "💊"}</Text>
                 <Text
                   style={{
                     fontSize: 12,
