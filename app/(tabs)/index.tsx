@@ -1,19 +1,25 @@
 // app/(tabs)/index.tsx
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
 import {
+  Category,
+  getProductCategories,
+  getProducts,
+  Product,
+} from "@/hooks/firebaseutitlits";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card, ProductCard, SectionHeader } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
-import { useCategories, useProducts } from "../../hooks/useProducts";
 import { Colors, Radius, Spacing, Typography } from "../../lib/theme";
 
 export default function HomeScreen() {
@@ -21,11 +27,6 @@ export default function HomeScreen() {
   const { user, profile } = useAuth();
   const { totalItems } = useCart();
   const [search, setSearch] = useState("");
-  const { products: featured, loading: fl } = useProducts({
-    featuredOnly: true,
-    limitCount: 8,
-  });
-  const { categories } = useCategories();
 
   const greeting = profile?.displayName
     ? `Hi, ${profile.displayName.split(" ")[0]} 👋`
@@ -35,6 +36,27 @@ export default function HomeScreen() {
     if (search.trim())
       router.push({ pathname: "/(tabs)/products", params: { q: search } });
   };
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts(),
+        getProductCategories(),
+      ]);
+
+      setProducts(productsData);
+      setCategories(categoriesData);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  console.log("Products:", products);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -182,15 +204,18 @@ export default function HomeScreen() {
                 }
                 style={[
                   styles.catChip,
-                  { backgroundColor: (cat.color || Colors.primary) + "18" },
+                  { backgroundColor: Colors.primary + "18" },
                 ]}
               >
-                <Text style={{ fontSize: 18 }}>{cat.icon || "💊"}</Text>
+                <Image
+                  source={{ uri: cat.image }}
+                  style={{ width: 24, height: 24, resizeMode: "contain" }}
+                />
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: cat.color || Colors.primary,
+                    color: Colors.primary,
                     marginTop: 4,
                   }}
                 >
@@ -213,7 +238,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 12 }}
           >
-            {featured.map((p) => (
+            {products.map((p) => (
               <ProductCard
                 key={p.id}
                 product={p}

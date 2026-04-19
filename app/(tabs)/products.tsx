@@ -1,6 +1,12 @@
 // app/(tabs)/products.tsx
+import {
+  Category,
+  getProductCategories,
+  getProducts,
+  Product,
+} from "@/hooks/firebaseutitlits";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,7 +19,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState, ProductCard } from "../../components/ui";
-import { useCategories, useProducts } from "../../hooks/useProducts";
 import { Colors, Radius, Spacing } from "../../lib/theme";
 
 const SORT_OPTIONS = [
@@ -25,18 +30,31 @@ const SORT_OPTIONS = [
 
 export default function ProductsScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ q?: string; category?: string }>();
-  const { categories } = useCategories();
+  const params = useLocalSearchParams<{ q?: string; category?: any }>();
 
   const [search, setSearch] = useState(params.q || "");
   const [selectedCat, setSelectedCat] = useState(params.category || "");
   const [sort, setSort] = useState("Relevance");
   const [showSort, setShowSort] = useState(false);
 
-  const { products, loading } = useProducts({
-    category: selectedCat || undefined,
-    search,
-  });
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts(),
+        getProductCategories(),
+      ]);
+
+      setProducts(productsData);
+      setCategories(categoriesData);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
 
   const sorted = [...products].sort((a, b) => {
     if (sort === "Price: Low to High") return a.price - b.price;
@@ -44,7 +62,6 @@ export default function ProductsScreen() {
     if (sort === "Name: A to Z") return a.name.localeCompare(b.name);
     return 0;
   });
-
   return (
     <SafeAreaView style={styles.safe}>
       {/* Search Bar */}
@@ -111,6 +128,7 @@ export default function ProductsScreen() {
           gap: 8,
           paddingHorizontal: Spacing.md,
           paddingVertical: 6,
+          marginBottom: 4,
         }}
       >
         <TouchableOpacity
@@ -244,6 +262,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  catChipText: { fontSize: 13, color: Colors.textSecondary, fontWeight: "500" },
+  catChipText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: "500",
+  },
   catChipTextActive: { color: Colors.white, fontWeight: "700" },
 });

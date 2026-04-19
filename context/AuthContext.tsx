@@ -1,16 +1,22 @@
 // context/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   User,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  sendPasswordResetEmail,
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+} from "firebase/auth";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { auth, db } from "../lib/firebase";
 
 interface UserProfile {
   uid: string;
@@ -26,7 +32,12 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+  ) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
@@ -43,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const snap = await getDoc(doc(db, 'users', u.uid));
+        const snap = await getDoc(doc(db, "users", u.uid));
         if (snap.exists()) setProfile(snap.data() as UserProfile);
       } else {
         setProfile(null);
@@ -57,18 +68,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const register = async (name: string, email: string, password: string, phone?: string) => {
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+  ) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     const profileData: UserProfile = {
       uid: cred.user.uid,
       email,
       displayName: name,
-      phone: phone || '',
-      address: '',
+      phone: phone || "",
+      address: "",
       createdAt: serverTimestamp(),
     };
-    await setDoc(doc(db, 'users', cred.user.uid), profileData);
+    await setDoc(doc(db, "users", cred.user.uid), profileData);
     setProfile(profileData);
   };
 
@@ -82,12 +98,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
-    await setDoc(doc(db, 'users', user.uid), data, { merge: true });
-    setProfile((prev) => prev ? { ...prev, ...data } : null);
+    await setDoc(doc(db, "users", user.uid), data, { merge: true });
+    setProfile((prev) => (prev ? { ...prev, ...data } : null));
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, register, logout, resetPassword, updateUserProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        login,
+        register,
+        logout,
+        resetPassword,
+        updateUserProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -95,6 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
