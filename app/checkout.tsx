@@ -31,6 +31,7 @@ export default function CheckoutScreen() {
   const { cart, subtotal, clearCart } = useCart();
 
   const [address, setAddress] = useState("");
+  const [userProfile, setUserProfile] = useState<any>({});
   const [phone, setPhone] = useState("");
   const [delivery, setDelivery] = useState("");
   const [deliveryFree, setDeliveryFree] = useState("");
@@ -49,6 +50,7 @@ export default function CheckoutScreen() {
         setDelivery(data.city?.deliveryFee);
         setDeliveryFree(data.city?.deliveryFree);
         setReferralCode(data.referralCode);
+        setUserProfile(data);
       }
 
       setLoadingUser(false);
@@ -90,12 +92,22 @@ export default function CheckoutScreen() {
 
     setLoading(true);
 
+    console.log("user", user);
+
     try {
       const checkoutData = {
         productOrder: cart.map((item) => ({
           product: item.product,
           quantity: item.quantity,
         })),
+        customer: {
+          city: userProfile?.city || "",
+          email: user.email || "",
+          firstName: userProfile?.firstName,
+          lastName: userProfile?.lastName,
+          phone: userProfile?.phone,
+          referralCode: userProfile?.referralCode,
+        },
         deliveryFee: total >= Number(deliveryFree) ? 0 : Number(delivery),
         isPaidToRefrral: false,
         orderDate: new Date().toISOString(),
@@ -110,12 +122,19 @@ export default function CheckoutScreen() {
 
       const res = await createOrder(checkoutData);
 
+      for (const item of cart) {
+        await updateProduct({
+          ...item.product,
+          totalSold: (item.product.totalSold || 0) + item.quantity,
+        });
+      }
+
       if (res?.success) {
         clearCart();
 
         router.replace({
           pathname: "/order-success",
-          params: { orderId: res.orderId }, // ✅ FIXED
+          params: { orderId: res.orderId },
         });
       } else {
         throw new Error("Order failed");
@@ -482,3 +501,18 @@ const styles = StyleSheet.create({
     padding: 12,
   },
 });
+function updateProduct(arg0: {
+  totalSold: number;
+  id: string;
+  name: string;
+  price: number;
+  category?: { id: string; name: string };
+  categoryId?: string;
+  description?: string;
+  productImage?: string;
+  brand?: string;
+  instock?: boolean;
+  mg?: number;
+}) {
+  throw new Error("Function not implemented.");
+}

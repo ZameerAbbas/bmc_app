@@ -102,7 +102,7 @@ export default function ProductDetailScreen() {
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
             {product?.brand && <Badge label={product?.brand} />}
             <Badge
-              label={product?.categoryId}
+              label={product?.category?.name}
               color={Colors.accent}
               bg={Colors.accentLight}
             />

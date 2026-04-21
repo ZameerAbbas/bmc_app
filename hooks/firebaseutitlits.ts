@@ -1,16 +1,21 @@
 import { db } from "@/lib/firebase";
-import { equalTo, get, orderByChild, push, query, ref, set } from "firebase/database";
+import { equalTo, get, orderByChild, push, query, ref, set, update } from "firebase/database";
 
 export interface Product {
     id: string;
     name: string;
     price: number;
+    category?: {
+        id: string;
+        name: string;
+    }
     categoryId?: string;
     description?: string;
     productImage?: string;
     brand?: string;
     instock?: boolean;
     mg?: number;
+    totalSold?: number;
 }
 
 
@@ -51,6 +56,22 @@ export const getProducts = async (): Promise<Product[]> => {
     } catch (error) {
         console.log("Error fetching products:", error);
         return [];
+    }
+};
+
+export const updateProduct = async (product: Product): Promise<void> => {
+    try {
+        if (!product.id) throw new Error("Product ID is required");
+
+        const productRef = ref(db, `products/${product.id}`);
+
+        await update(productRef, {
+            ...product,
+        });
+
+    } catch (error) {
+        console.log("Error updating product:", error);
+        throw error;
     }
 };
 

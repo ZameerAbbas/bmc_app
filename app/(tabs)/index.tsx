@@ -58,6 +58,10 @@ export default function HomeScreen() {
 
   console.log("Products:", products);
 
+  const top5Products = [...products]
+    .sort((a, b) => (b.totalSold || 0) - (a.totalSold || 0))
+    .slice(0, 4);
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -130,7 +134,7 @@ export default function HomeScreen() {
                 lineHeight: 24,
               }}
             >
-              On orders{"\n"}above Rs. 2000
+              On orders{"\n"} above PKR 2000
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(tabs)/products")}
@@ -227,25 +231,32 @@ export default function HomeScreen() {
         </View>
 
         {/* Featured Products */}
-        <View style={{ paddingHorizontal: Spacing.md, marginTop: Spacing.lg }}>
+        <View
+          style={{
+            paddingHorizontal: Spacing.md,
+            marginTop: Spacing.lg,
+          }}
+        >
           <SectionHeader
             title="Popular This Month"
             action="See All"
             onAction={() => router.push("/(tabs)/products")}
           />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 12 }}
-          >
-            {products.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                onPress={() => router.push(`/product/${p.id}`)}
-              />
-            ))}
-          </ScrollView>
+          <View style={{ paddingBottom: 12 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12 }}
+            >
+              {top5Products.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onPress={() => router.push(`/product/${p.id}`)}
+                />
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
         {/* Emergency Banner */}

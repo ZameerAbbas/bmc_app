@@ -82,7 +82,7 @@ export function Button({
 
 // ─── Badge ────────────────────────────────────────────────────────
 interface BadgeProps {
-  label: string;
+  label?: any;
   color?: string;
   bg?: string;
 }
@@ -193,6 +193,19 @@ export function ProductCard({
         activeOpacity={0.9}
         style={styles.hCard}
       >
+        <View
+          style={{
+            position: "absolute",
+            top: -6,
+            right: -10,
+            backgroundColor: "green",
+            borderRadius: 8,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 10 }}>New</Text>
+        </View>
         <Image
           source={{
             uri:
@@ -268,7 +281,7 @@ export function ProductCard({
         <Text
           style={{ fontSize: 11, color: Colors.textMuted, marginBottom: 4 }}
         >
-          {product.categoryId}
+          {product.brand}
         </Text>
 
         <Text
@@ -422,6 +435,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
+    position: "relative",
   },
   hCardImg: {
     width: 72,
