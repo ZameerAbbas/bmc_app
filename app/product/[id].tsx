@@ -90,7 +90,7 @@ export default function ProductDetailScreen() {
             source={{
               uri:
                 product?.productImage ||
-                `https://via.placeholder.com/400x320/0A7EA4/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                `https://via.placeholder.com/400x320/0A7EA4/FFFFFF?text=${encodeURIComponent(product?.name)}`,
             }}
             style={styles.productImage}
             resizeMode="contain"
@@ -174,7 +174,7 @@ export default function ProductDetailScreen() {
             </Text>
             {[
               { label: "Brand", value: product?.brand || "N/A" },
-              { label: "Category", value: product?.categoryId },
+              { label: "Category", value: product?.category?.name },
               { label: "MG", value: product?.mg || "N/A" },
               {
                 label: "Availability",

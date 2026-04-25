@@ -269,9 +269,9 @@ export default function CartScreen() {
       const data = await getUserById(user.uid);
 
       if (data) {
-        setDelivery(data.city?.deliveryFee);
-        setDeliveryFree(data.city?.deliveryFree);
-        setReferralCode(data.referralCode || "");
+        setDelivery(data?.city?.deliveryFee);
+        setDeliveryFree(data?.city?.deliveryFree);
+        setReferralCode(data?.referralCode || "");
       }
 
       console.log("User profile:", data);

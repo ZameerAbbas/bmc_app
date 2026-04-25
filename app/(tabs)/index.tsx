@@ -8,6 +8,7 @@ import {
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  FlatList,
   Image,
   ScrollView,
   StyleSheet,
@@ -56,11 +57,42 @@ export default function HomeScreen() {
     loadData();
   }, []);
 
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    if (search.trim().length > 0) {
+      const result = products.filter((p) =>
+        p.name?.toLowerCase().includes(search.toLowerCase()),
+      );
+      setFilteredProducts(result);
+      setShowDropdown(true);
+    } else {
+      setFilteredProducts([]);
+      setShowDropdown(false);
+    }
+  }, [search, products]);
+
   console.log("Products:", products);
 
   const top5Products = [...products]
     .sort((a, b) => (b.totalSold || 0) - (a.totalSold || 0))
     .slice(0, 4);
+
+  const SearchItem = ({ item, onPress }: any) => (
+    <TouchableOpacity style={styles.dropdownItem} onPress={onPress}>
+      <View style={styles.dropdownItem}>
+        <Image
+          source={{ uri: item.productImage }}
+          style={{ width: 30, height: 30 }}
+        />
+        <View style={{ marginLeft: 8 }}>
+          <Text>{item.name}</Text>
+          <Text style={{ color: "#888", fontSize: 12 }}>Rs {item.price}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -94,7 +126,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchWrap}>
+        {/* <View style={styles.searchWrap}>
           <Text style={{ fontSize: 16, marginRight: 8 }}>🔍</Text>
           <TextInput
             placeholder="Search medicines, vitamins..."
@@ -109,6 +141,48 @@ export default function HomeScreen() {
             <TouchableOpacity onPress={() => setSearch("")}>
               <Text style={{ color: Colors.textMuted, fontSize: 16 }}>✕</Text>
             </TouchableOpacity>
+          )}
+        </View> */}
+
+        <View style={{ position: "relative" }}>
+          <View style={styles.searchWrap}>
+            <Text style={{ fontSize: 16, marginRight: 8 }}>🔍</Text>
+
+            <TextInput
+              placeholder="Search medicines, vitamins..."
+              placeholderTextColor={Colors.textMuted}
+              value={search}
+              onChangeText={setSearch}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+              style={styles.searchInput}
+            />
+
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")}>
+                <Text style={{ color: Colors.textMuted, fontSize: 16 }}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* 🔽 Dropdown */}
+          {showDropdown && (
+            <View style={styles.dropdown}>
+              <FlatList
+                data={filteredProducts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <SearchItem
+                    item={item}
+                    onPress={() => {
+                      setSearch(item.name);
+                      setShowDropdown(false);
+                      router.push(`/product/${item.id}`);
+                    }}
+                  />
+                )}
+              />
+            </View>
           )}
         </View>
 
@@ -380,5 +454,28 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 8,
+  },
+
+  dropdown: {
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 5,
+    zIndex: 1000,
+    maxHeight: 200,
+  },
+
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  dropdownText: {
+    fontSize: 14,
+    color: "#333",
   },
 });

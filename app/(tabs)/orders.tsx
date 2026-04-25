@@ -132,7 +132,7 @@ export default function OrdersScreen() {
                       textAlign: "right",
                     }}
                   >
-                    Rs. {(p.price * p.quantity).toLocaleString()}
+                    Rs. {(p?.product?.price * p?.quantity).toLocaleString()}
                   </Text>
                 </View>
               ))}

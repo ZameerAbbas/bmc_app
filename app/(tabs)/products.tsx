@@ -6,7 +6,7 @@ import {
   Product,
 } from "@/hooks/firebaseutitlits";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -56,12 +56,31 @@ export default function ProductsScreen() {
     loadData();
   }, []);
 
-  const sorted = [...products].sort((a, b) => {
-    if (sort === "Price: Low to High") return a.price - b.price;
-    if (sort === "Price: High to Low") return b.price - a.price;
-    if (sort === "Name: A to Z") return a.name.localeCompare(b.name);
-    return 0;
-  });
+  const filteredAndSortedProducts = useMemo(() => {
+    let list = [...products];
+
+    // 🔍 Search filter
+    if (search.trim()) {
+      list = list.filter((p) =>
+        p.name?.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+
+    // 📂 Category filter
+    if (selectedCat) {
+      list = list.filter((p) => p.category?.id === selectedCat);
+    }
+
+    // 🔃 Sorting
+    list.sort((a, b) => {
+      if (sort === "Price: Low to High") return a.price - b.price;
+      if (sort === "Price: High to Low") return b.price - a.price;
+      if (sort === "Name: A to Z") return a.name.localeCompare(b.name);
+      return 0;
+    });
+
+    return list;
+  }, [products, search, selectedCat, sort]);
   return (
     <SafeAreaView style={styles.safe}>
       {/* Search Bar */}
@@ -147,10 +166,10 @@ export default function ProductsScreen() {
         {categories.map((c) => (
           <TouchableOpacity
             key={c.id}
-            onPress={() => setSelectedCat(selectedCat === c.name ? "" : c.name)}
+            onPress={() => setSelectedCat(selectedCat === c.id ? "" : c.id)}
             style={[
               styles.catChip,
-              selectedCat === c.name && styles.catChipActive,
+              selectedCat === c.id && styles.catChipActive,
             ]}
           >
             <Text
@@ -167,13 +186,14 @@ export default function ProductsScreen() {
 
       <View style={{ paddingHorizontal: Spacing.md, marginBottom: 8 }}>
         <Text style={{ fontSize: 13, color: Colors.textSecondary }}>
-          {sorted.length} product{sorted.length !== 1 ? "s" : ""} found
+          {filteredAndSortedProducts.length} product
+          {filteredAndSortedProducts.length !== 1 ? "s" : ""} found
         </Text>
       </View>
 
       {loading ? (
         <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} />
-      ) : sorted.length === 0 ? (
+      ) : filteredAndSortedProducts.length === 0 ? (
         <EmptyState
           emoji="🔍"
           title="No products found"
@@ -186,7 +206,7 @@ export default function ProductsScreen() {
         />
       ) : (
         <FlatList
-          data={sorted}
+          data={filteredAndSortedProducts}
           numColumns={2}
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ padding: Spacing.md, gap: 12 }}

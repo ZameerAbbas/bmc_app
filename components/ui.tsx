@@ -255,15 +255,24 @@ export function ProductCard({
       activeOpacity={0.9}
       style={styles.vCard}
     >
-      <Image
-        source={{
-          uri:
-            product.productImage ||
-            "https://via.placeholder.com/160x140/0A7EA4/FFFFFF?text=Med",
-        }}
-        style={styles.vCardImg}
-        resizeMode="cover"
-      />
+      <View style={styles.imageWrapper}>
+        <Image
+          source={{
+            uri:
+              product.productImage ||
+              "https://via.placeholder.com/160x140/0A7EA4/FFFFFF?text=Med",
+          }}
+          style={styles.vCardImg}
+          resizeMode="cover"
+        />
+
+        {/* Brand Badge */}
+        {product?.brand && (
+          <View style={styles.brandBadge}>
+            <Text style={styles.brandText}>{product.brand}</Text>
+          </View>
+        )}
+      </View>
 
       <View style={{ padding: Spacing.sm, flex: 1 }}>
         <Text
@@ -281,7 +290,7 @@ export function ProductCard({
         <Text
           style={{ fontSize: 11, color: Colors.textMuted, marginBottom: 4 }}
         >
-          {product.brand}
+          {product.category?.name || "General"}
         </Text>
 
         <Text
@@ -363,6 +372,25 @@ export function StatusChip({ status }: { status: string }) {
 }
 
 const styles = StyleSheet.create({
+  imageWrapper: {
+    position: "relative",
+  },
+
+  brandBadge: {
+    position: "absolute",
+    top: 6,
+    left: 6,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+
+  brandText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "600",
+  },
   btn: {
     borderRadius: Radius.md,
     alignItems: "center",
